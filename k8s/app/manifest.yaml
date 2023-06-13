@@ -1,0 +1,50 @@
+---
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: primes-ns
+  labels:
+    name: primes-ns
+    environment: production
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: primes-dpm
+  namespace: primes-ns
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: primes
+  template:
+    metadata:
+      labels:
+        app: primes
+    spec:
+      containers:
+      - name: primes-ctn
+        image: marcelofcandido/primes:v1.0.5
+        imagePullPolicy: IfNotPresent
+        ports:
+        - containerPort: 3000
+        livenessProbe:
+          httpGet:
+            path: /api/health
+            port: 3000
+          initialDelaySeconds: 10
+          periodSeconds: 10
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: primes-svc
+  namespace: primes-ns
+spec:
+  type: ClusterIP
+  selector:
+    app: primes
+  ports:
+    - protocol: TCP
+      port: 80
+      targetPort: 3000
